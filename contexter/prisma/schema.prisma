@@ -1,0 +1,88 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model messages {
+  id         BigInt    @id @default(autoincrement())
+  user       String?   @db.VarChar
+  message    String?   @db.VarChar
+  room       String    @db.Uuid
+  created_at DateTime? @default(now()) @db.Timestamptz(6)
+  rooms      rooms     @relation(fields: [room], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model rooms {
+  id                       String     @id @db.Uuid
+  name1                    String     @unique
+  name2                    String     @unique
+  scene                    BigInt?
+  created_at               DateTime   @default(now()) @db.Timestamptz(6)
+  messages                 messages[]
+  User_rooms_name1ToUser   User       @relation("rooms_name1ToUser", fields: [name1], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  User_rooms_name2ToUser   User       @relation("rooms_name2ToUser", fields: [name2], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  scene_rooms_sceneToscene scene?     @relation("rooms_sceneToscene", fields: [scene], references: [id], onDelete: NoAction, onUpdate: NoAction)
+}
+
+model scene {
+  id                       BigInt  @id @default(autoincrement())
+  context_1                String  @db.VarChar
+  context_2                String  @db.VarChar
+  scene                    String  @db.VarChar
+  char1                    String? @default("") @db.VarChar
+  char2                    String? @db.VarChar
+  common                   String? @db.VarChar
+  rooms_rooms_sceneToscene rooms[] @relation("rooms_sceneToscene")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model User {
+  id                      String    @id @default(cuid())
+  name                    String?
+  email                   String?   @unique
+  emailVerified           DateTime?
+  image                   String?
+  gender                  String?
+  personality             String?
+  accounts                Account[]
+  sessions                Session[]
+  rooms_rooms_name1ToUser rooms?    @relation("rooms_name1ToUser")
+  rooms_rooms_name2ToUser rooms?    @relation("rooms_name2ToUser")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
