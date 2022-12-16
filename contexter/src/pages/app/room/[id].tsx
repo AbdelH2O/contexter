@@ -181,10 +181,6 @@ const Room = () => {
                 setShowContext={setShowContext}
                 showContext={showContext}
                 scene={scene}
-                names={{
-                    name1: users.user.gender === 'male' ? users.user.name : users.receipient.name,
-                    name2: users.user.gender === 'female' ? users.user.name : users.receipient.name,
-                }}
             />
             <div className="h-screen w-screen grid grid-cols-1 grid-rows-[8vh_84vh_8vh]">
                 <div className="bg-rose-600 flex flex-row items-center">
