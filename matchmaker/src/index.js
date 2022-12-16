@@ -1,5 +1,12 @@
 import * as Bull from 'bull';
 import { matchmake } from './matchmake.js';
+import { Configuration, OpenAIApi } from "openai";
+
+const configuration = new Configuration({
+    organization: "org-x7RBJz72X56E7bqPT0Wpznwm",
+    apiKey: process.env.OPENAI_API_KEY,
+});
+const openai = new OpenAIApi(configuration);
 
 const taskQueue = new Bull.default('taskQueue', process.env.VITE_REDIS_FULL_URL, {
     settings: {
@@ -11,7 +18,7 @@ const taskQueue = new Bull.default('taskQueue', process.env.VITE_REDIS_FULL_URL,
 
 taskQueue.process(async (job, done) => {
     console.log(job.data);
-    await matchmake();
+    await matchmake(openai);
     await taskQueue.add({
         queue: 'queue',
         id: `${Math.floor(new Date(Date.now() + 15000).getTime()/1000)}`,

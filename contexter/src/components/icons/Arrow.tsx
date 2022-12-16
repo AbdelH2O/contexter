@@ -15,6 +15,7 @@ const Arrow = (
             style={{
                 transform: `rotate(${direction === 'right' ? 0 : 180}deg)`,
                 fill: color,
+                cursor: onClick ? 'pointer' : 'default',
             }}
             onClick={onClick}
         >

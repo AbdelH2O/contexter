@@ -1,7 +1,7 @@
 import client from './redisClient.js';
 import supabase from './utilitySupabase.js';
 import { randomUUID as uuidv4 } from 'crypto'
-// import genContext from './genContext.js';
+import genContext from './genContext.js';
 
 // function uuidv4() {
 //   return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>
@@ -18,7 +18,7 @@ import { randomUUID as uuidv4 } from 'crypto'
 //     buffer.slice(4, 8).map(num => num.toString(16).padStart(4, '0')).join('-');
 // }
 
-export const matchmake = async () => {
+export const matchmake = async (openai) => {
   try {
     await client.connect();
   } catch(err) {
@@ -42,15 +42,23 @@ export const matchmake = async () => {
     });
     for(let i = 0; i < Math.min(maleMembers.length, femaleMembers.length); i++) {
       const room = uuidv4();
+      const scene = await genContext(maleMembers[i], femaleMembers[i], openai);
+      const { data: sceneD, error: sceneError } = await supabase
+      .from('scene')
+      .insert({
+        context: scene.choices[0].text,
+        scene: '',
+      }).select();
+      console.log({sceneD, sceneError});
       const { data: chatRoom, error: chatRoomError } = await supabase
-        .from('rooms')
-        .insert({
-          id: room,
-          name1: maleMembers[i].username,
-          name2: femaleMembers[i].username,
-        });
+      .from('rooms')
+      .insert({
+        id: room,
+        name1: maleMembers[i].id,
+        name2: femaleMembers[i].id,
+        scene: sceneD[0].id,
+      }).select();
       console.log({chatRoom, chatRoomError});
-      // await genContext(maleMembers[i], femaleMembers[i]);
       // console.log({male: males[i], female: females[i]});
       await client.zRem('male', males[i].value);
       await client.zRem('female', females[i].value);
