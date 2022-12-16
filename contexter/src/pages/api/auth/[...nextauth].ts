@@ -2,6 +2,7 @@ import NextAuth, { type NextAuthOptions } from "next-auth";
 import EmailProvider from "next-auth/providers/email"
 // Prisma adapter for NextAuth, optional and can be removed
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
+import supabase from "../../../utils/supabase";
 
 import { env } from "../../../env/server.mjs";
 import { prisma } from "../../../server/db/client";
@@ -10,11 +11,29 @@ export const authOptions: NextAuthOptions = {
   // Include user.id on session
   callbacks: {
     session({ session, user }) {
+      supabase.auth.setSession({
+        access_token: env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+        refresh_token: '',
+      });
       if (session.user) {
         session.user.id = user.id;
+        session.user.gender = user.gender;
       }
+      
       return session;
     },
+    // jwt({ token, user }) {
+    //   console.log(token);
+      
+    //   supabase.auth.setSession({
+    //     access_token: token,
+    //     refresh_token: '',
+    //   });
+    //   if (user) {
+    //     token.id = user.id;
+    //   }
+    //   return token;
+    // }
   },
   // Configure one or more authentication providers
   adapter: PrismaAdapter(prisma),
@@ -23,6 +42,15 @@ export const authOptions: NextAuthOptions = {
     logo: "/contexter.png",
     colorScheme: "light",
 
+  },
+  // jwt: {
+  //   maxAge: 30 * 24 * 60 * 60, 
+  // },
+  // session: {
+  //   strategy: "jwt",
+  // },
+  pages: {
+    signIn: "/",
   },
   providers: [
     EmailProvider({
@@ -59,6 +87,7 @@ export const authOptions: NextAuthOptions = {
     // }),
     // ...add more providers here
   ],
+  
 };
 
 export default NextAuth(authOptions);

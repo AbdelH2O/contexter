@@ -1,6 +1,6 @@
 const Loader = ({height, width} : {height: number, width: number}) => {
   return (
-    <div className="w-full h-full flex justify-center items-center">
+    <div className="w-fit h-full flex justify-center items-center">
       <svg
         version="1.1"
         id="L4"
@@ -9,13 +9,13 @@ const Loader = ({height, width} : {height: number, width: number}) => {
         x="0px"
         y="0px"
         viewBox="0 0 100 100"
-        enable-background="new 0 0 0 0"
+        enableBackground="new 0 0 0 0"
         xmlSpace="preserve"
         height={height}
         width={width}
-        className="flex items-center justify-center"
+        className="block"
       >
-        <circle fill="#fff" stroke="none" cx="6" cy="50" r="6">
+        <circle fill="#fff" stroke="none" cx="26" cy="50" r="6">
           <animate
             attributeName="opacity"
             dur="1s"
@@ -24,7 +24,7 @@ const Loader = ({height, width} : {height: number, width: number}) => {
             begin="0.1"
           />
         </circle>
-        <circle fill="#fff" stroke="none" cx="26" cy="50" r="6">
+        <circle fill="#fff" stroke="none" cx="46" cy="50" r="6">
           <animate
             attributeName="opacity"
             dur="1s"
@@ -33,7 +33,7 @@ const Loader = ({height, width} : {height: number, width: number}) => {
             begin="0.2"
           />
         </circle>
-        <circle fill="#fff" stroke="none" cx="46" cy="50" r="6">
+        <circle fill="#fff" stroke="none" cx="66" cy="50" r="6">
           <animate
             attributeName="opacity"
             dur="1s"

@@ -1,11 +1,22 @@
 import client from './redisClient.js';
 import supabase from './utilitySupabase.js';
+import { randomUUID as uuidv4 } from 'crypto'
+// import genContext from './genContext.js';
 
-function uuidv4() {
-  return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>
-    (c ^ crypto.webcrypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
-  );
-}
+// function uuidv4() {
+//   return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>
+//     (c ^ crypto.webcrypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
+//   );
+// }
+// function uuidv4() {
+//   var cryptoObj = window.crypto || window.msCrypto; // for IE 11
+//   var buffer = new Uint16Array(8);
+//   cryptoObj.getRandomValues(buffer);
+//   buffer[3] = buffer[3] & 0xfff | 0x4000;
+//   buffer[4] = buffer[4] & 0x3fff | 0x8000;
+//   return buffer.slice(0, 4).map(num => num.toString(16).padStart(4, '0')).join('-') +
+//     buffer.slice(4, 8).map(num => num.toString(16).padStart(4, '0')).join('-');
+// }
 
 export const matchmake = async () => {
   try {
@@ -13,12 +24,22 @@ export const matchmake = async () => {
   } catch(err) {
     // console.log(err);
   }
-  const { members: maleMembers } = await client.zScan('male', 0);
-  const { members: femaleMembers } = await client.zScan('female', 0);
+  const respm = await client.zScan('male', 0);
+  const respf = await client.zScan('female', 0);
+  console.log({respm, respf});
+  const males = respm.members;
+  const females = respf.members;
 
-  if(maleMembers.length > 0 && femaleMembers.length > 0) {
-    const maleMembers = maleMembers.map((member) => JSON.parse(member));
-    const femaleMembers = femaleMembers.map((member) => JSON.parse(member));
+  if(males.length > 0 && females.length > 0) {
+    console.log({males, females});
+    const maleMembers = males.map((member) =>{
+      console.log({member});
+      return JSON.parse(member.value)
+    });
+    const femaleMembers = females.map((member) =>{
+      console.log({member});
+      return JSON.parse(member.value)
+    });
     for(let i = 0; i < Math.min(maleMembers.length, femaleMembers.length); i++) {
       const room = uuidv4();
       const { data: chatRoom, error: chatRoomError } = await supabase
@@ -28,13 +49,15 @@ export const matchmake = async () => {
           name1: maleMembers[i].username,
           name2: femaleMembers[i].username,
         });
-      console.log(chatRoom, chatRoomError);
-      await client.zRem('male', maleMembers[i]);
-      await client.zRem('female', femaleMembers[i]);
+      console.log({chatRoom, chatRoomError});
+      // await genContext(maleMembers[i], femaleMembers[i]);
+      // console.log({male: males[i], female: females[i]});
+      await client.zRem('male', males[i].value);
+      await client.zRem('female', females[i].value);
     }
   }
   const trash = await client.scan(0, 'MATCH', 'bull:taskQueue:*');
   trash.keys.forEach(async (key) => {
-    const resp = await client.del(key);
+    const resp = key !== 'male' && key !== 'female' && await client.del(key);
   });
 }
